@@ -4,9 +4,11 @@ import Button from './Button'
 import Badge from './Badge'
 import { formatDate } from '../../utils/helpers'
 import { DECISION_COLORS } from '../../utils/constants'
+import { getAppealByDecision } from '../../data'
 
 const DecisionCard = ({ decision, showAppealButton = true }) => {
   const navigate = useNavigate()
+  const existingAppeal = getAppealByDecision(decision.id)
   const colors = DECISION_COLORS[decision.outcome] || DECISION_COLORS.approved
 
   const getIcon = () => {
@@ -33,6 +35,24 @@ const DecisionCard = ({ decision, showAppealButton = true }) => {
 
   const handleAppeal = () => {
     navigate('/appeal/submit', { state: { decisionId: decision.id } })
+  }
+
+  const handleTrackAppeal = () => {
+    navigate(`/appeal/${existingAppeal.id}`)
+  }
+
+  const getAppealStatusBadgeColor = () => {
+    if (!existingAppeal) return null
+    if (existingAppeal.appealStatus === 'Pending') return 'yellow'
+    if (existingAppeal.appealStatus === 'UnderReview') return 'blue'
+    if (existingAppeal.appealStatus === 'Resolved') return 'green'
+    return 'gray'
+  }
+
+  const getAppealStatusLabel = () => {
+    if (!existingAppeal) return null
+    if (existingAppeal.appealStatus === 'UnderReview') return 'Appeal Under Review'
+    return `Appeal ${existingAppeal.appealStatus}`
   }
 
   return (
@@ -81,7 +101,15 @@ const DecisionCard = ({ decision, showAppealButton = true }) => {
         <div className="text-xs text-gray-500">
           Decision ID: {decision.id} | Model: {decision.modelVersion}
         </div>
-        {decision.appealable && showAppealButton && (
+        {decision.appealable && showAppealButton && existingAppeal && (
+          <div className="flex items-center gap-3">
+            <Badge color={getAppealStatusBadgeColor()}>{getAppealStatusLabel()}</Badge>
+            <Button variant="outline" size="small" onClick={handleTrackAppeal}>
+              Track Appeal
+            </Button>
+          </div>
+        )}
+        {decision.appealable && showAppealButton && !existingAppeal && (
           <Button variant="outline" size="small" onClick={handleAppeal}>
             Submit Appeal
           </Button>

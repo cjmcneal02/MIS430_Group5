@@ -5,7 +5,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="font-heading text-white text-lg font-semibold mb-3">FairPlay Portal</h3>
-            <p className="text-sm">
+            <p className="text-sm max-w-[180px]">
               Making algorithmic decisions transparent and fair for the gaming community.
             </p>
           </div>

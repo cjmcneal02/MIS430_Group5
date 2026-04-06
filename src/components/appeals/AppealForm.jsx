@@ -65,7 +65,6 @@ const AppealForm = ({ preselectedDecisionId, onSubmit }) => {
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-crimson focus:border-transparent ${
               errors.decisionId ? 'border-red-500' : 'border-gray-300'
             }`}
-            disabled={!!preselectedDecisionId}
           >
             <option value="">-- Select a decision --</option>
             {appealableDecisions.map(decision => (

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Search } from 'lucide-react'
 import Button from '../common/Button'
 import Card from '../common/Card'
+import { appeals } from '../../data'
 
 const AppealTracker = ({ onSearch }) => {
   const [appealId, setAppealId] = useState('')
@@ -14,7 +15,7 @@ const AppealTracker = ({ onSearch }) => {
       return
     }
     setError('')
-    onSearch(appealId.trim())
+    onSearch(appealId.trim().toUpperCase())
   }
 
   return (
@@ -23,7 +24,7 @@ const AppealTracker = ({ onSearch }) => {
         Track Your Appeal
       </h3>
       <p className="text-gray-600 mb-6">
-        Enter your Appeal ID to check the status and progress of your appeal.
+        Enter or select your Appeal ID to check the status and progress of your appeal.
       </p>
 
       <form onSubmit={handleSubmit}>
@@ -31,16 +32,24 @@ const AppealTracker = ({ onSearch }) => {
           <div className="flex-grow">
             <input
               type="text"
+              list="appeal-ids"
               value={appealId}
               onChange={(e) => {
                 setAppealId(e.target.value)
                 setError('')
               }}
-              placeholder="Enter Appeal ID (e.g., APP001)"
+              placeholder="Type or select Appeal ID (e.g., APP001)"
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-crimson focus:border-transparent ${
                 error ? 'border-red-500' : 'border-gray-300'
               }`}
             />
+            <datalist id="appeal-ids">
+              {appeals.map(a => (
+                <option key={a.id} value={a.id}>
+                  {a.id} — {a.appealStatus}
+                </option>
+              ))}
+            </datalist>
             {error && (
               <p className="mt-1 text-sm text-red-600">{error}</p>
             )}
@@ -54,8 +63,7 @@ const AppealTracker = ({ onSearch }) => {
 
       <div className="mt-6 bg-gray-50 rounded-lg p-4">
         <p className="text-sm text-gray-700">
-          <strong>Tip:</strong> Your Appeal ID was provided when you submitted your appeal.
-          Check your email or the confirmation page. Example format: APP001, APP002, etc.
+          <strong>Tip:</strong> Click the input field to see your existing appeals, or type an Appeal ID directly.
         </p>
       </div>
     </Card>
