@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, CheckCircle, Clock } from 'lucide-react'
+import { AlertCircle, CheckCircle, Clock, CheckCircle2 } from 'lucide-react'
 import Button from './Button'
 import Badge from './Badge'
 import { formatDate } from '../../utils/helpers'
@@ -9,9 +9,21 @@ import { getAppealByDecision } from '../../data'
 const DecisionCard = ({ decision, showAppealButton = true }) => {
   const navigate = useNavigate()
   const existingAppeal = getAppealByDecision(decision.id)
-  const colors = DECISION_COLORS[decision.outcome] || DECISION_COLORS.approved
+
+  const isAppealOverturned = () => {
+    return existingAppeal &&
+           existingAppeal.appealStatus === 'Resolved' &&
+           existingAppeal.resolution &&
+           existingAppeal.resolution.toLowerCase().includes('overturned')
+  }
+
+  const effectiveOutcome = isAppealOverturned() ? 'overturned' : decision.outcome
+  const colors = DECISION_COLORS[effectiveOutcome] || DECISION_COLORS.approved
 
   const getIcon = () => {
+    if (isAppealOverturned()) {
+      return <CheckCircle2 className="h-5 w-5 text-blue-600" />
+    }
     switch (decision.outcome) {
       case 'approved':
         return <CheckCircle className="h-5 w-5 text-green-600" />
@@ -23,6 +35,9 @@ const DecisionCard = ({ decision, showAppealButton = true }) => {
   }
 
   const getOutcomeText = () => {
+    if (isAppealOverturned()) {
+      return 'Appeal Overturned'
+    }
     switch (decision.outcome) {
       case 'approved':
         return 'Approved'
@@ -69,18 +84,29 @@ const DecisionCard = ({ decision, showAppealButton = true }) => {
             </p>
           </div>
         </div>
-        <Badge color={decision.outcome === 'approved' ? 'green' : decision.outcome === 'restricted' ? 'red' : 'yellow'}>
+        <Badge color={isAppealOverturned() ? 'blue' : decision.outcome === 'approved' ? 'green' : decision.outcome === 'restricted' ? 'red' : 'yellow'}>
           {getOutcomeText()}
         </Badge>
       </div>
 
       <div className={`${colors.bg} rounded-md p-4 mb-4`}>
+        {isAppealOverturned() && (
+          <div className="mb-3 pb-3 border-b border-blue-200">
+            <p className="text-sm font-semibold text-blue-900 mb-1">
+              ✓ This decision was appealed and reversed
+            </p>
+            <p className="text-xs text-blue-700">
+              {existingAppeal.resolution} (Resolved on {formatDate(existingAppeal.resolutionDate)})
+            </p>
+          </div>
+        )}
         <p className={`text-sm ${colors.text}`}>
+          {isAppealOverturned() && <span className="font-semibold">Original Decision: </span>}
           {decision.explanation}
         </p>
       </div>
 
-      {decision.restrictionDuration && (
+      {decision.restrictionDuration && !isAppealOverturned() && (
         <div className="mb-4">
           <p className="text-sm text-gray-700">
             <span className="font-semibold">Duration:</span> {decision.restrictionDuration}
