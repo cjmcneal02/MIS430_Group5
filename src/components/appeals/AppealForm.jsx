@@ -62,8 +62,10 @@ const AppealForm = ({ preselectedDecisionId, onSubmit }) => {
             name="decisionId"
             value={formData.decisionId}
             onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-crimson focus:border-transparent ${
-              errors.decisionId ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+              errors.decisionId
+                ? 'border-red-500 focus:ring-red-400'
+                : 'border-gray-300 focus:ring-crimson'
             }`}
           >
             <option value="">-- Select a decision --</option>
@@ -88,16 +90,31 @@ const AppealForm = ({ preselectedDecisionId, onSubmit }) => {
             value={formData.userStatement}
             onChange={handleChange}
             rows={6}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-crimson focus:border-transparent ${
-              errors.userStatement ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+              errors.userStatement
+                ? 'border-red-500 focus:ring-red-400'
+                : 'border-gray-300 focus:ring-crimson'
             }`}
             placeholder="Please explain why you believe this decision should be reviewed. Be specific and provide any relevant context."
           />
-          {errors.userStatement && (
-            <p className="mt-1 text-sm text-red-600">{errors.userStatement}</p>
-          )}
+          <div className="flex justify-between items-start mt-1">
+            <div>
+              {errors.userStatement && (
+                <p className="text-sm text-red-600">{errors.userStatement}</p>
+              )}
+            </div>
+            <p className={`text-xs shrink-0 ml-4 ${
+              formData.userStatement.length === 0
+                ? 'text-gray-400'
+                : formData.userStatement.length < 20
+                ? 'text-amber-600 font-medium'
+                : 'text-green-600'
+            }`}>
+              {formData.userStatement.length}/20 min
+            </p>
+          </div>
           <p className="mt-1 text-xs text-gray-500">
-            Minimum 20 characters. Your statement will be reviewed by a human moderator.
+            Your statement will be reviewed by a human moderator.
           </p>
         </div>
 
