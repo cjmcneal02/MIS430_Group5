@@ -7,28 +7,31 @@ const Button = ({
   disabled = false,
   className = ''
 }) => {
-  const baseStyles = 'font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2'
+  const base = 'font-heading font-semibold uppercase tracking-wider transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 inline-flex items-center justify-center gap-1.5'
 
-  const variantStyles = {
-    primary: 'bg-crimson hover:bg-crimson-light text-white focus:ring-crimson',
-    secondary: 'bg-navy-light hover:bg-navy-deep text-white focus:ring-navy-light',
-    outline: 'border-2 border-crimson text-crimson hover:bg-crimson hover:text-white focus:ring-crimson',
+  const variants = {
+    primary: `bg-crimson text-white focus:ring-crimson
+      hover:bg-crimson-light hover:shadow-[0_0_18px_rgba(155,28,28,0.45)]`,
+    secondary: `bg-navy-deep text-white focus:ring-navy-light
+      hover:bg-navy-light`,
+    outline: `border border-crimson text-crimson bg-transparent focus:ring-crimson
+      hover:bg-crimson hover:text-white`,
   }
 
-  const sizeStyles = {
-    small: 'px-3 py-1.5 text-sm',
-    medium: 'px-5 py-2.5 text-base',
-    large: 'px-6 py-3 text-lg',
+  const sizes = {
+    small:  'px-3.5 py-1.5 text-xs',
+    medium: 'px-5 py-2.5 text-sm',
+    large:  'px-7 py-3.5 text-base',
   }
 
-  const disabledStyles = disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+  const disabledStyle = disabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
 
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${disabledStyles} ${className}`}
+      className={`${base} ${variants[variant]} ${sizes[size]} ${disabledStyle} ${className}`}
     >
       {children}
     </button>

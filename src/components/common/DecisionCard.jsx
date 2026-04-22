@@ -6,61 +6,57 @@ import { formatDate } from '../../utils/helpers'
 import { DECISION_COLORS } from '../../utils/constants'
 import { getAppealByDecision } from '../../data'
 
+const BORDER_COLORS = {
+  approved:   '#10B981',
+  restricted: '#9B1C1C',
+  review:     '#D97706',
+  overturned: '#3B82F6',
+}
+
 const DecisionCard = ({ decision, showAppealButton = true }) => {
   const navigate = useNavigate()
   const existingAppeal = getAppealByDecision(decision.id)
 
-  const isAppealOverturned = () => {
-    return existingAppeal &&
-           existingAppeal.appealStatus === 'Resolved' &&
-           existingAppeal.resolution &&
-           existingAppeal.resolution.toLowerCase().includes('overturned')
-  }
+  const isAppealOverturned = () =>
+    existingAppeal &&
+    existingAppeal.appealStatus === 'Resolved' &&
+    existingAppeal.resolution &&
+    existingAppeal.resolution.toLowerCase().includes('overturned')
 
   const effectiveOutcome = isAppealOverturned() ? 'overturned' : decision.outcome
   const colors = DECISION_COLORS[effectiveOutcome] || DECISION_COLORS.approved
 
+  const borderColor = isAppealOverturned()
+    ? BORDER_COLORS.overturned
+    : decision.outcome === 'approved'
+      ? BORDER_COLORS.approved
+      : decision.outcome === 'restricted'
+        ? BORDER_COLORS.restricted
+        : BORDER_COLORS.review
+
   const getIcon = () => {
-    if (isAppealOverturned()) {
-      return <CheckCircle2 className="h-5 w-5 text-blue-600" />
-    }
+    if (isAppealOverturned()) return <CheckCircle2 className="h-5 w-5 text-blue-500" />
     switch (decision.outcome) {
-      case 'approved':
-        return <CheckCircle className="h-5 w-5 text-green-600" />
-      case 'restricted':
-        return <AlertCircle className="h-5 w-5 text-red-600" />
-      default:
-        return <Clock className="h-5 w-5 text-yellow-600" />
+      case 'approved':    return <CheckCircle className="h-5 w-5" style={{ color: '#10B981' }} />
+      case 'restricted':  return <AlertCircle className="h-5 w-5 text-crimson" />
+      default:            return <Clock className="h-5 w-5" style={{ color: '#D97706' }} />
     }
   }
 
   const getOutcomeText = () => {
-    if (isAppealOverturned()) {
-      return 'Appeal Overturned'
-    }
+    if (isAppealOverturned()) return 'Appeal Overturned'
     switch (decision.outcome) {
-      case 'approved':
-        return 'Approved'
-      case 'restricted':
-        return 'Restricted'
-      default:
-        return 'Under Review'
+      case 'approved':    return 'Approved'
+      case 'restricted':  return 'Restricted'
+      default:            return 'Under Review'
     }
-  }
-
-  const handleAppeal = () => {
-    navigate('/appeal/submit', { state: { decisionId: decision.id } })
-  }
-
-  const handleTrackAppeal = () => {
-    navigate(`/appeal/${existingAppeal.id}`)
   }
 
   const getAppealStatusBadgeColor = () => {
     if (!existingAppeal) return null
-    if (existingAppeal.appealStatus === 'Pending') return 'yellow'
+    if (existingAppeal.appealStatus === 'Pending')     return 'yellow'
     if (existingAppeal.appealStatus === 'UnderReview') return 'blue'
-    if (existingAppeal.appealStatus === 'Resolved') return 'green'
+    if (existingAppeal.appealStatus === 'Resolved')    return 'green'
     return 'gray'
   }
 
@@ -71,80 +67,116 @@ const DecisionCard = ({ decision, showAppealButton = true }) => {
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 mb-4 border-l-4 ${colors.border} hover:shadow-lg transition-shadow`}>
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-3">
-          {getIcon()}
-          <div>
-            <h3 className="font-heading text-xl font-semibold text-navy-deep">
-              {decision.decisionType}
-            </h3>
-            <p className="text-sm text-gray-500">
-              Decision Date: {formatDate(decision.decisionDate)}
-            </p>
-          </div>
-        </div>
-        <Badge color={isAppealOverturned() ? 'blue' : decision.outcome === 'approved' ? 'green' : decision.outcome === 'restricted' ? 'red' : 'yellow'}>
-          {getOutcomeText()}
-        </Badge>
-      </div>
-
-      <div className={`${colors.bg} rounded-md p-4 mb-4`}>
-        {isAppealOverturned() && (
-          <div className="mb-3 pb-3 border-b border-blue-200">
-            <p className="text-sm font-semibold text-blue-900 mb-1">
-              ✓ This decision was appealed and reversed
-            </p>
-            <p className="text-xs text-blue-700">
-              {existingAppeal.resolution} (Resolved on {formatDate(existingAppeal.resolutionDate)})
-            </p>
-          </div>
-        )}
-        <p className={`text-sm ${colors.text}`}>
-          {isAppealOverturned() && <span className="font-semibold">Original Decision: </span>}
-          {decision.explanation}
-        </p>
-      </div>
-
-      {decision.restrictionDuration && !isAppealOverturned() && (
-        <div className="mb-4">
-          <p className="text-sm text-gray-700">
-            <span className="font-semibold">Duration:</span> {decision.restrictionDuration}
-            {decision.restrictionExpired && <span className="ml-2 text-green-600">(Expired)</span>}
-          </p>
-        </div>
-      )}
-
-      {decision.promotionTier && (
-        <div className="mb-4">
-          <p className="text-sm text-gray-700">
-            <span className="font-semibold">Promotion Tier:</span> {decision.promotionTier}
-          </p>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500">
-          Decision ID: {decision.id} | Model: {decision.modelVersion}
-        </div>
-        {decision.appealable && showAppealButton && existingAppeal && (
+    <div
+      className="bg-white mb-4 transition-all duration-200 hover:-translate-y-0.5"
+      style={{
+        border: `1px solid #E5E7EB`,
+        borderLeft: `3px solid ${borderColor}`,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.08)'; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.04)'; }}
+    >
+      <div style={{ padding: '1.5rem' }}>
+        {/* Header row */}
+        <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-3">
-            <Badge color={getAppealStatusBadgeColor()}>{getAppealStatusLabel()}</Badge>
-            <Button variant="outline" size="small" onClick={handleTrackAppeal}>
-              Track Appeal
-            </Button>
+            {getIcon()}
+            <div>
+              <h3 className="font-heading font-semibold text-navy-deep" style={{ fontSize: '1.15rem', lineHeight: 1.2 }}>
+                {decision.decisionType}
+              </h3>
+              <p style={{ color: '#6B7280', fontSize: '0.78rem', marginTop: '0.15rem' }}>
+                Decision Date: {formatDate(decision.decisionDate)}
+              </p>
+            </div>
+          </div>
+          <Badge
+            color={
+              isAppealOverturned()
+                ? 'blue'
+                : decision.outcome === 'approved'
+                  ? 'green'
+                  : decision.outcome === 'restricted'
+                    ? 'red'
+                    : 'yellow'
+            }
+          >
+            {getOutcomeText()}
+          </Badge>
+        </div>
+
+        {/* Explanation block */}
+        <div
+          className={`rounded-none mb-4 ${colors.bg}`}
+          style={{ padding: '1rem', borderLeft: `2px solid ${borderColor}` }}
+        >
+          {isAppealOverturned() && (
+            <div className="mb-3 pb-3" style={{ borderBottom: '1px solid rgba(59,130,246,0.2)' }}>
+              <p className="text-sm font-semibold text-blue-800 mb-1">
+                ✓ This decision was appealed and reversed
+              </p>
+              <p className="text-xs text-blue-600">
+                {existingAppeal.resolution} (Resolved on {formatDate(existingAppeal.resolutionDate)})
+              </p>
+            </div>
+          )}
+          <p className={`text-sm ${colors.text}`}>
+            {isAppealOverturned() && <span className="font-semibold">Original Decision: </span>}
+            {decision.explanation}
+          </p>
+        </div>
+
+        {/* Duration */}
+        {decision.restrictionDuration && !isAppealOverturned() && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-700">
+              <span className="font-semibold">Duration:</span>{' '}
+              {decision.restrictionDuration}
+              {decision.restrictionExpired && (
+                <span className="ml-2" style={{ color: '#10B981' }}>(Expired)</span>
+              )}
+            </p>
           </div>
         )}
-        {decision.appealable && showAppealButton && !existingAppeal && (
-          <Button variant="outline" size="small" onClick={handleAppeal}>
-            Submit Appeal
-          </Button>
+
+        {/* Promotion tier */}
+        {decision.promotionTier && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-700">
+              <span className="font-semibold">Promotion Tier:</span> {decision.promotionTier}
+            </p>
+          </div>
         )}
-        {!decision.appealable && (
-          <span className="text-sm text-gray-500 italic">
-            This decision is not appealable
-          </span>
-        )}
+
+        {/* Footer row */}
+        <div
+          className="flex justify-between items-center pt-4"
+          style={{ borderTop: '1px solid #F3F4F6' }}
+        >
+          <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '0.65rem', color: '#9CA3AF', letterSpacing: '0.08em' }}>
+            {decision.id} · {decision.modelVersion}
+          </div>
+
+          {decision.appealable && showAppealButton && existingAppeal && (
+            <div className="flex items-center gap-3">
+              <Badge color={getAppealStatusBadgeColor()}>{getAppealStatusLabel()}</Badge>
+              <Button variant="outline" size="small" onClick={() => navigate(`/appeal/${existingAppeal.id}`)}>
+                Track Appeal
+              </Button>
+            </div>
+          )}
+          {decision.appealable && showAppealButton && !existingAppeal && (
+            <Button variant="outline" size="small" onClick={() => navigate('/appeal/submit', { state: { decisionId: decision.id } })}>
+              Submit Appeal
+            </Button>
+          )}
+          {!decision.appealable && (
+            <span style={{ fontSize: '0.78rem', color: '#9CA3AF', fontStyle: 'italic' }}>
+              Not appealable
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )
